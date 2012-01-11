@@ -1,0 +1,75 @@
+<!DOCTYPE html5>
+<html>
+<head>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+$(function() {
+    $.getJSON('/list-candidates')
+    .done(function(result) {
+        var ctx = $('#candidates');
+        $.each(result.candidates, function(i, e) {
+            ctx.append($('<li></li>').append($('<input></input>', {value: e, type: 'checkbox'})).append(e.substring(33)));
+        });
+    });
+
+    $.getJSON('/list-proxies')
+    .done(function(result) {
+        var ctx = $('#proxies');
+        ctx.val(result.proxies.join('\n'));
+    });
+
+    $('#step1').click(function() {
+        $.getJSON('/run-step1')
+        .done(function(result) {
+            if (result.session_cookie) $('#session_cookie').val(result.session_cookie);
+        });
+    });
+
+    $('#step2').click(function() {
+        $.post('/run-step2', {session_cookie: $('#session_cookie').val()})
+        .done(function(result) {
+            $('#pic-bmp').remove();
+            $('#valid_code').after($('<img id="pic-bmp" src="pic.bmp?t='+ +new Date() +'"/>'));
+        }, 'json');
+    });
+
+    $('#step1n2').click(function() {
+        $.getJSON('/run-step1n2')
+        .done(function(result) {
+            if (result.session_cookie) $('#session_cookie').val(result.session_cookie);
+            $('#pic-bmp').remove();
+            $('#valid_code').after($('<img id="pic-bmp" src="pic.bmp?t='+ +new Date() +'"/>'));
+        });
+    });
+
+    $('#step3').click(function() {
+        var paras = {
+            'session_cookie': $('#session_cookie').val(),
+            'valid_code': $('#valid_code').val(),
+            'candidates': $.makeArray($('#candidates :checked').map(function() {
+                return $(this).val();
+            })).join(',')
+        };
+        var q = $.param(paras, true);
+        window.open('run-morestep3?'+ q);
+    });
+});
+    </script>
+</head>
+<body>
+    <ul id="arguments">
+        <li><input id="not_random_proxy" value="true" type="checkbox"></input> not_random_proxy</li>
+        <li><input id="not_random_candidate" value="true" type="checkbox"></input> not_random_candidate</li>
+        <li>session_cookie <input id="session_cookie" value="" type="text"></input> </li>
+        <li>valid_code <input id="valid_code" value="" type="text"></input> </li>
+        <li><input id="step1" type="button" value="step1"></input> </li>
+        <li><input id="step2" type="button" value="step2"></input> </li>
+        <li><input id="step1n2" type="button" value="step1&amp;2"></input> </li>
+        <li><input id="step3" type="button" value="step3"></input> </li>
+    </ul>
+    <ul id="candidates">
+    </ul>
+    <textarea id="proxies"></textarea>
+</body>
+</html>
+
