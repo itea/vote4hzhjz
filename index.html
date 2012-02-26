@@ -12,12 +12,6 @@ $(function() {
         });
     });
 
-    $.getJSON('/list-proxies')
-    .done(function(result) {
-        var ctx = $('#proxies');
-        ctx.val(result.proxies.join('\n'));
-    });
-
     $('#step1').click(function() {
         $.getJSON('/run-step1')
         .done(function(result) {
@@ -37,6 +31,7 @@ $(function() {
         $.getJSON('/run-step1n2')
         .done(function(result) {
             if (result.session_cookie) $('#session_cookie').val(result.session_cookie);
+            else $('#session_cookie')[0].value = '';
             $('#pic-bmp').remove();
             $('#valid_code').after($('<img id="pic-bmp" src="pic.bmp?t='+ +new Date() +'"/>'));
         });
@@ -48,24 +43,33 @@ $(function() {
             'valid_code': $('#valid_code').val(),
             'candidates': $.makeArray($('#candidates :checked').map(function() {
                 return $(this).val();
-            })).join(',')
+            })).join(','),
+            'proxies': $('#proxies').val().replace(/[,\s]/g, ','),
+            'vote_num': $('#vote_num').val() || 10
         };
         var q = $.param(paras, true);
         window.open('run-morestep3?'+ q);
     });
+
+    $('#print-proxies').click(function() {
+        $.getJSON('print-proxies');
+    });
 });
     </script>
+    <style type="text/css">
+#session_cookie {width: 440px;}
+    </style>
 </head>
 <body>
     <ul id="arguments">
-        <li><input id="not_random_proxy" value="true" type="checkbox"></input> not_random_proxy</li>
-        <li><input id="not_random_candidate" value="true" type="checkbox"></input> not_random_candidate</li>
         <li>session_cookie <input id="session_cookie" value="" type="text"></input> </li>
         <li>valid_code <input id="valid_code" value="" type="text"></input> </li>
+        <li>vote_num <input id="vote_num" value="" type="text"></input> </li>
         <li><input id="step1" type="button" value="step1"></input> </li>
         <li><input id="step2" type="button" value="step2"></input> </li>
         <li><input id="step1n2" type="button" value="step1&amp;2"></input> </li>
         <li><input id="step3" type="button" value="step3"></input> </li>
+        <li><input id="print-proxies" type="button" value="print proxies"></input> </li>
     </ul>
     <ul id="candidates">
     </ul>
